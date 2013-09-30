@@ -17,8 +17,11 @@ class hmm:
     def exhaustive(self):
 		input = 'You look around at professional ballplayers and nobody blinks an eye'
 		input = input.lower()    #convert to lower case
-		viterbi=float32.array
+		input = input.split()   #tokenize
+		viterbi= zeros(shape=(12,len(input)),dtype=float32);  #float32 numpy array for precision,  hardcoded lenth of token for alog, modify later size+2
+		print viterbi
 		print input
+		
 		
     ####
     # ADD METHODS HERE
