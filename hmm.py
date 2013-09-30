@@ -13,6 +13,31 @@ class hmm:
         self.states = states
         self.symbols = symbols
 
+
+    def exhaustive(self,input): #assuming end state will  .  (dot)
+        #input = 'You look around at professional ballplayers and nobody blinks an eye'+ ' .'
+        input = input.lower()    #convert to lower case
+        input = input.split()   #tokenize
+        #input = input.append('.') #for termination phase    -- added with string
+        forward = zeros(shape=(len(self.states), len(input)),dtype=float32);
+        sym = input[0]  #take first observation/word
+        for i, state in enumerate(self.states):
+            forward[i, 0] = self.priors.logprob(state) + self.emissions[state].logprob(sym) #use priors for start frequency, log scale therfore plus
+
+
+        iterinputs = iter(input)
+        sum=0
+        for k, word in enumerate(iterinputs):
+            for s, state in enumerate(self.states):
+                #find sum of viterbi[s',t-1] and store that s' for a(s',s)
+                for p, stateIn in enumerate(self.states):
+                        sum =sum + forward[p, k - 1] + self.transitions[stateIn].logprob(state)
+
+                #above function finished, calculated sum in sum
+                forward[s, k] =  sum + self.emissions[state].logprob(word)#note log scale -> plus
+
+        return forward
+
     def tagViterbi(self,fileName):
         f=open(fileName,'rU')
         for line in f:
@@ -31,8 +56,8 @@ class hmm:
                 print word+'/'+i+' ',
             print '***'
 
-    def decode(self, input):
-        input =input+' .'
+    def decode(self, input):  #assuming end state will be . dot .
+        #input =input+' .'
         #input = 'You look around at professional ballplayers and nobody blinks an eye'+ ' .'
         input = input.lower()    #convert to lower case
         input = input.split()   #tokenize
@@ -92,9 +117,15 @@ class hmm:
 
 def main():
     # Create an instance
-    input = 'You look around at professional ballplayers and nobody blinks an eye'
+    input = 'You look around at professional ballplayers and nobody blinks an eye .'
     #model = hmm().decode(input)
-    model = hmm().tagViterbi('sentences.txt')
+
+    #Following For Question 2- d
+    #model = hmm().tagViterbi('sentences.txt')
+
+    #For question 1-b)
+    model = hmm().exhaustive(input)
+    print model
 
 #print 'everthing went fine, now printing backpointers'
 #print model
