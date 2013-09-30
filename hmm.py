@@ -23,13 +23,12 @@ class hmm:
 		print viterbi
 		print input
 		sym=input[0]  #take first observation/word
-		i=0
-		for state in self.states:
+		for i,state in enumerate(self.states):
 			viterbi[i,0]= self.priors.logprob(state) + self.emissions[state].logprob(sym) #use priors for start frequency, log scale therfore plus
 			backpointers[i,0]=0
-			i=i+1
 			#save backpoint
 			#print state
+
 		print viterbi
 		print 'backpointers'
 		print backpointers
