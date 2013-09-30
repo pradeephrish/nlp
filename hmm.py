@@ -14,7 +14,7 @@ class hmm:
         self.symbols = symbols
 
 
-    def exhaustive(self,input): #assuming end state will  .  (dot)
+    def forward(self,input): #assuming end state will  .  (dot)
         #input = 'You look around at professional ballplayers and nobody blinks an eye'+ ' .'
         input = input.lower()    #convert to lower case
         input = input.split()   #tokenize
@@ -26,22 +26,30 @@ class hmm:
 
 
         iterinputs = iter(input)
-        sum=0
         for k, word in enumerate(iterinputs):
             for s, state in enumerate(self.states):
                 #find sum of viterbi[s',t-1] and store that s' for a(s',s)
-                for p, stateIn in enumerate(self.states):
-                        sum =sum + forward[p, k - 1] + self.transitions[stateIn].logprob(state)
+                sum=0
+                for p,stateIn in enumerate(self.states):
+                        sum =sum + forward[p, k - 1] + self.transitions[stateIn].logprob(state);
 
                 #above function finished, calculated sum in sum
                 forward[s, k] =  sum + self.emissions[state].logprob(word)#note log scale -> plus
 
         #found likelihood sequence print sequence
         #find tags
+        print forward
         tags = []
-        for i in range(0,len(input),1):
-            maxStateIndex = argmax(max(forward,axis=0))
-            tags.append(self.states[maxStateIndex])
+        for row in forward:
+            ###iterate over states and find maximum
+            m = max(row)
+            print row,
+            maxIndex=0
+            for i, j in enumerate(row):
+                if j == m:
+                    maxIndex=i
+            print maxIndex
+            tags.append(self.states[maxIndex])
 
         for word,i in zip(input,tags):
                 print word+'/'+i+' ',
