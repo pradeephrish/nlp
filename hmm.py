@@ -32,6 +32,11 @@ class hmm:
 		print viterbi
 		print 'backpointers'
 		print backpointers
+		iterinputs = iter(input)
+		next(iterinputs)      #skip first element
+		for word in iterinputs:
+			
+		
 		
     ####
     # ADD METHODS HERE
