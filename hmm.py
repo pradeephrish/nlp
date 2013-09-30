@@ -17,6 +17,7 @@ class hmm:
 		input = 'You look around at professional ballplayers and nobody blinks an eye'
 		input = input.lower()    #convert to lower case
 		input = input.split()   #tokenize
+		input = input.append('.') #for termination phase
 		viterbi= zeros(shape=(len(self.states)+2,len(input)),dtype=float32);  #float32 numpy array for precision
 		backpointers= zeros(shape=(len(self.states)+2,len(input)));
 		print viterbi
@@ -55,18 +56,28 @@ class hmm:
 						
 				#above function finished, found maximum ,s' stored in maxStateId   ,  Note  viterbi[maxStateId,k-1] is equal to max
 				viterbi[i,k]=viterbi[maxStateId,k-1]+ self.transitions[self.states[maxStateId]].logprob(state)+self.emissions[state].logprob(word)#note log scale -> plus 
-				backpointers[i,k]=
+				backpointers[i,k]=	argMaxStateId
 		        i = i+1
 		k = k+1
+		#termination step  T (oT = '.') , input/words/observations were appended by . therefore termination should happen at this stage
+		'''
+		print 'before final step'
+		print verterbi
+		qf=len(self.states)
+		T=len(input)
+		'''
+		#find max and T (oT = '.')
     ####
     # ADD METHODS HERE
     ####
-    
+		return backpointers
 
 
 def main():
     # Create an instance
     model = hmm().exhaustive()
+	print 'everthing went fine, now printing backpointers'
+	print model
 
 	
 	
