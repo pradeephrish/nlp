@@ -16,6 +16,8 @@ class hmm:
 		
     def exhaustive(self):
 		input = 'You look around at professional ballplayers and nobody blinks an eye'
+		input = input.lower()    #convert to lower case
+		viterbi=float32.array
 		print input
 		
     ####
