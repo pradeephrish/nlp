@@ -18,8 +18,8 @@ class hmm:
 		input = input.lower()    #convert to lower case
 		input = input.split()   #tokenize
 		#input = input.append('.') #for termination phase    -- added with string
-		viterbi= zeros(shape=(len(self.states)+2,len(input)),dtype=float32);  #float32 numpy array for precision
-		backpointers= zeros(shape=(len(self.states)+2,len(input)));
+		viterbi= zeros(shape=(len(self.states),len(input)),dtype=float32);  #float32 numpy array for precision, why  first 2
+		backpointers= zeros(shape=(len(self.states),len(input)));
 		print viterbi
 		print input
 		sym=input[0]  #take first observation/word
