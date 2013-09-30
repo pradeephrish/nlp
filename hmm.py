@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from numpy import zeros, float32, int32
+from numpy import zeros, float32, int32, argmax, max
 import hmmtrain
 
 
@@ -36,7 +36,18 @@ class hmm:
                 #above function finished, calculated sum in sum
                 forward[s, k] =  sum + self.emissions[state].logprob(word)#note log scale -> plus
 
-        return forward
+        #found likelihood sequence print sequence
+        #find tags
+        tags = []
+        for i in range(0,len(input),1):
+            maxStateIndex = argmax(max(forward,axis=0))
+            tags.append(self.states[maxStateIndex])
+
+        for word,i in zip(input,tags):
+                print word+'/'+i+' ',
+        print '***'
+
+
 
     def tagViterbi(self,fileName):
         f=open(fileName,'rU')
