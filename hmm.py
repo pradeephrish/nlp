@@ -28,7 +28,8 @@ class hmm:
 
 
             for word,i in zip(words,reversed(tags)):
-                print word+'/'+i
+                print word+'/'+i+' ',
+            print '***'
 
     def decode(self, input):
         input =input+' .'
@@ -39,8 +40,8 @@ class hmm:
         viterbi = zeros(shape=(len(self.states), len(input)),
                         dtype=float32);  #float32 numpy array for precision, why  first 2
         backpointers = zeros(shape=(len(self.states), len(input)),dtype=int32);
-        print viterbi
-        print input
+        #print viterbi
+        #print input
         sym = input[0]  #take first observation/word
         for i, state in enumerate(self.states):
             viterbi[i, 0] = self.priors.logprob(state) + self.emissions[state].logprob(
@@ -49,9 +50,9 @@ class hmm:
         #save backpoint
         #print state
 
-        print viterbi
-        print 'backpointers'
-        print backpointers
+        #print viterbi
+        #print 'backpointers'
+        #print backpointers
         iterinputs = iter(input)
         for k, word in enumerate(iterinputs):
             for s, state in enumerate(self.states):
@@ -83,9 +84,9 @@ class hmm:
         ####
         # ADD METHODS HERE
         ####
-        print 'terminating'
-        print viterbi
-        print backpointers
+        #print 'terminating'
+        #print viterbi
+        #print backpointers
         return backpointers
 
 
