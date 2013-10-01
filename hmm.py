@@ -39,13 +39,29 @@ class hmm:
         print(tagWords)
         #get all combinations of tags
         allCombinations = itertools.product(*tagWords) #one shot using python ,reference: http://stackoverflow.com/questions/798854/all-combinations-of-a-list-of-lists
+        newList = list(allCombinations)
         print('printing all combinations')
         #print(allCombinations)
-        for combination in allCombinations:
-            print combination
+        #for combination in allCombinations:
+        #    print combination
+        scores=[] #stores probability score for sequence i , starts from zero
+        for combination in newList:
+            probabilityScoreCombination=0
+            for i,state in enumerate(combination):   #note number of states in each combination are same as number of observations
+                if(i==0):#use priori for start index
+                    probabilityScoreCombination=probabilityScoreCombination+self.priors.logprob(state)+self.emissions[state].logprob(input[i])
+                else:
+                    probabilityScoreCombination=probabilityScoreCombination+self.emissions[state].logprob(input[i])
+            scores.append(probabilityScoreCombination)
 
-
-
+        #find maximum probability combination
+        maxIndex=argmax(scores)
+        #print maximum likely sequence and
+        print('Probability :'),
+        print(scores[maxIndex])
+        print('Maximum likely tag sequence :'),
+        print(newList[maxIndex])
+        #return allCombinations.pop(maxIndex)
 
     def forward(self,input): #assumigng end state will  .  (dot)
         #input = 'You look around at professional ballplayers and nobody blinks an eye'+ ' .'
@@ -176,6 +192,7 @@ def main():
     #model = hmm().tagViterbi('sentences.txt')
 
     #For question 1-b)
+    input = 'You look around at professional ballplayers and nobody blinks an eye .'
     model = hmm().exhaustive(input)
     print model
 
