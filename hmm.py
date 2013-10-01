@@ -2,6 +2,7 @@
 
 from numpy import zeros, float32, int32, argmax, max
 import hmmtrain
+import itertools as itertools
 
 
 class hmm:
@@ -13,8 +14,40 @@ class hmm:
         self.states = states
         self.symbols = symbols
 
+    def exhaustive(self,input):
+        print('Exhaustive method')
+        input=input.lower()
+        input=input.split()
+        #short listing tags
+        print('previous length'),
 
-    def forward(self,input): #assuming end state will  .  (dot)
+        tagWords = []
+        for word in input:
+            tagCopy = self.states[:] #copying list
+            removeIndices=[]
+            for k,state in enumerate(self.states):
+                prob=self.emissions[state].prob(word) #note for comparision not using log
+                if(prob < 1e-4):
+                    removeIndices.append(k)
+            for  i in removeIndices:
+                tagCopy.remove(self.states[i])
+            tagWords.append(tagCopy)
+
+
+        #print
+        print('after shortlisting')
+        print(tagWords)
+        #get all combinations of tags
+        allCombinations = itertools.product(*tagWords) #one shot using python ,reference: http://stackoverflow.com/questions/798854/all-combinations-of-a-list-of-lists
+        print('printing all combinations')
+        #print(allCombinations)
+        for combination in allCombinations:
+            print combination
+
+
+
+
+    def forward(self,input): #assumigng end state will  .  (dot)
         #input = 'You look around at professional ballplayers and nobody blinks an eye'+ ' .'
         input = input.lower()    #convert to lower case
         input = input.split()   #tokenize
