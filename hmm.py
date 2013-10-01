@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from numpy import zeros, float32, int32, argmax, max
+from numpy import zeros, float64, int64, argmax, max
 import hmmtrain
 import itertools as itertools
 
@@ -68,7 +68,7 @@ class hmm:
         input = input.lower()    #convert to lower case
         input = input.split()   #tokenize
         #input = input.append('.') #for termination phase    -- added with string
-        forward = zeros(shape=(len(self.states), len(input)),dtype=float32);
+        forward = zeros(shape=(len(self.states), len(input)),dtype=float64);
         sym = input[0]  #take first observation/word
         for i, state in enumerate(self.states):
             forward[i, 0] = self.priors.logprob(state) + self.emissions[state].logprob(sym) #use priors for start frequency, log scale therfore plus
@@ -131,8 +131,8 @@ class hmm:
         input = input.split()   #tokenize
         #input = input.append('.') #for termination phase    -- added with string
         viterbi = zeros(shape=(len(self.states), len(input)),
-                        dtype=float32);  #float32 numpy array for precision, why  first 2
-        backpointers = zeros(shape=(len(self.states), len(input)),dtype=int32);
+                        dtype=float64);  #float32 numpy array for precision, why  first 2
+        backpointers = zeros(shape=(len(self.states), len(input)),dtype=int64);
         #print viterbi
         #print input
         sym = input[0]  #take first observation/word
@@ -192,7 +192,7 @@ def main():
     #model = hmm().tagViterbi('sentences.txt')
 
     #For question 1-b)
-    input = 'You look around at professional ballplayers and nobody blinks an eye .'
+    input = 'You look around at professional.'
     model = hmm().exhaustive(input)
     print model
 
