@@ -14,7 +14,7 @@ import java.util.Set;
 public class IBMModel1 {
 	public static void main(String[] args) {
 		
-		if(args.length==0){
+		if(args.length<2){
 			System.out.println("Please provide input arguments... ");
 			
 			System.exit(0);
@@ -22,9 +22,9 @@ public class IBMModel1 {
 		
 		
 		IBMModel1 ibmModel1 = new IBMModel1();
-		List<String> sentences = readFile(args[1]); //english corpo
+		List<String> sentences = readFile(args[0]); //english corpo
 		ibmModel1.setEnglishSentences(sentences);
-		sentences = readFile(args[2]); //english corpo
+		sentences = readFile(args[1]); //english corpo
 		ibmModel1.setGermanSentences(sentences);
 		//call for all sentences
 		for (int i = 0; i < sentences.size(); i++) {
@@ -33,11 +33,19 @@ public class IBMModel1 {
 		}
 		ibmModel1.model1EM(10); // 10 steps
 		
+		System.out.println(ibmModel1.mapT);
+		/*Iterator<Entry<String, Double>> iterator = ibmModel1.mapT.entrySet().iterator();
+		while(iterator.hasNext()){
+			Entry<String, Double> entry = iterator.next();
+			System.out.println(entry.getKey());
+			System.out.println(entry.getValue());
+		}*/
+		
 	}
 
 	private List<String> germanSentences;
 	private List<String> englishSentences;
-	private Map<String,Double> mapT; // t(f|e) - score
+	private Map<String,Double> mapT = new HashMap<String, Double>(); // t(f|e) - score
 	
 	
 	public static List<String> readFile(String fileName){
@@ -57,6 +65,13 @@ public class IBMModel1 {
 	
 
 	private void model1EM(Integer steps){
+		if(steps==0)
+			return;
+		
+		System.out.println("Step : "+steps);
+		System.out.println(mapT);
+		
+		
 		Map<String,Double> mapC; // count(f|e) score - set to 0 at each EM iteration 
 		
 		mapC= setCountstoZero();
@@ -88,9 +103,10 @@ public class IBMModel1 {
 				Entry<String, Double> entry = iterator.next();
 				String totalKey  = entry.getKey().substring(entry.getKey().indexOf("-")+1);
 				Double updatedValue = mapC.get(entry.getKey())/mapTotal.get(totalKey);
+				mapT.put(entry.getKey(), updatedValue);
 			}
 		}
-		
+		model1EM(--steps);
 	}
 	
 	
@@ -144,7 +160,7 @@ public class IBMModel1 {
 
 		for (int i = 0; i < words1.length; i++) {
 			for (int j = 0; j < words2.length; j++) {
-				String key = words1 + "-" + words2;
+				String key = words1[i] + "-" + words2[j];
 				if (!mapT.containsKey(key))
 					mapT.put(key, getInitialAtomic(words1[i], words2[j]));
 			}
@@ -158,15 +174,15 @@ public class IBMModel1 {
 	 * conditional T(f|e) probabilities sum to 1.
 	 */
 	
-	Map<String,Double> mapTotal; // total(e) score  - set to 9 at each EM iteration 
+	Map<String,Double> mapTotal = new HashMap<String, Double>(); // total(e) score  - set to 9 at each EM iteration 
 	
 	private Double getInitialAtomic(String germanWord, String englishWord) {
 		
 		mapTotal.put(englishWord, 0.0); //this will be used later
 		
 		// TODO Auto-generated method stub
-		List<String> germanSentences = getGermanSetences(); 
-	    List<String> englishSentences = getEnglishSetences();
+		List<String> germanSentences = getGermanSentences(); 
+	    List<String> englishSentences = getEnglishSentences();
 	    
 	    if(germanSentences.size()!=englishSentences.size()){
 	    	System.out.println("Something wrong ! size doesn't match");
@@ -178,7 +194,22 @@ public class IBMModel1 {
 	    for (int i = 0; i < germanSentences.size(); i++) {
 			if(englishSentences.get(i).contains(englishWord)){
 				Integer index = getIndex(englishSentences.get(i),englishWord);
-				String germanW = germanSentences.get(i).split(" ")[index];
+				if(index==null)
+					continue;
+				String germanW = null;
+				try{
+				germanW = germanSentences.get(i).split(" ")[index];
+				}catch(ArrayIndexOutOfBoundsException e){
+//					System.out.println("recover by random value");
+					++count;
+					System.out.println(count);
+				}catch (Exception e) {
+					// TODO: handle exception
+					System.out.println(englishSentences.get(i)+ " "+index+"  "+englishWord);
+					System.out.println(germanSentences.get(i));
+					e.printStackTrace();
+					System.exit(0);
+				}
 				if(!germanwords.contains(germanW)) // if it's different then only count
 					++count;
 			}
@@ -198,42 +229,18 @@ public class IBMModel1 {
 		return null;
 	}
 
-	private List<String> getEnglishSetences() {
-		// TODO Auto-generated method stub
-		return getGermanSentences();
-	}
-
-	private List<String> getGermanSetences() {
-		// TODO Auto-generated method stub
-		return getEnglishSentences();
-	}
-
-
-
-
 
 	public List<String> getGermanSentences() {
 		return germanSentences;
 	}
 
-
-
-
-
 	public void setGermanSentences(List<String> germanSentences) {
 		this.germanSentences = germanSentences;
 	}
 
-
-
-
-
 	public List<String> getEnglishSentences() {
 		return englishSentences;
 	}
-
-
-
 
 
 	public void setEnglishSentences(List<String> englishSentences) {
