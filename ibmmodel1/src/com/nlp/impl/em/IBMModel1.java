@@ -93,33 +93,54 @@ public class IBMModel1 {
 		for (int i = 0; i < getGermanSentences().size(); i++) { //german or english sentencs ,jsut need size
 			String germanWords[] = getGermanSentences().get(i).split(" ");
 			String englishWords[]=  getEnglishSentences().get(i).split(" ");
-			int[] total_s = new int[germanWords.length];
+			double[] total_s = new double[germanWords.length];
 			for (int j = 0; j < germanWords.length; j++) {
 					for (int k = 0; k < englishWords.length; k++) {
 						total_s[j]+=mapT.get(germanWords[j]+"-"+englishWords[k]);
 					}
 			}
+			System.out.println("Total value map before");
+			System.out.println(mapTotal);
+			System.out.println("Map count before");
+			System.out.println(mapC);
+			System.out.println("Printing total_s");
+			for (int j2 = 0; j2 < total_s.length; j2++) {
+				System.out.print(total_s[j2]+" ");
+			}
+			System.out.println();
 			for (int j = 0; j < germanWords.length; j++) {
 				for (int k = 0; k < englishWords.length; k++) {
 					Double value = mapC.get(germanWords[j]+"-"+englishWords[k]);
 					value+=mapT.get(germanWords[j]+"-"+englishWords[k]) / total_s[j];
+					System.out.println(mapT.get(germanWords[j]+"-"+englishWords[k]));
+					System.out.println(total_s[j]);
+					System.out.println("--> Value is "+value + " "+mapT.get(germanWords[j]+"-"+englishWords[k]) / total_s[j]);
 					mapC.put(germanWords[j]+"-"+englishWords[k], value); //update value
 					Double tValue = mapTotal.get(englishWords[k]);
 					tValue+=mapT.get(germanWords[j]+"-"+englishWords[k]) / total_s[j];
 					mapTotal.put(englishWords[k], tValue); //update totalValue
 				}
 			}
-			 //for all e 
-			//   for all f
-			//      update t(f|e)
-			Iterator<Entry<String, Double>> iterator = mapT.entrySet().iterator();
-			while(iterator.hasNext()){
-				Entry<String, Double> entry = iterator.next();
-				String totalKey  = entry.getKey().substring(entry.getKey().indexOf("-")+1);
-				Double updatedValue = mapC.get(entry.getKey())/mapTotal.get(totalKey);
-				mapT.put(entry.getKey(), updatedValue);
-			}
 		}
+		System.out.println("Total value map after");
+		System.out.println(mapTotal);
+		System.out.println("Map count after");
+		System.out.println(mapC);
+		Iterator<Entry<String, Double>> iterator = mapT.entrySet().iterator();
+		while(iterator.hasNext()){
+			Entry<String, Double> entry = iterator.next();
+			String totalKey  = entry.getKey().substring(entry.getKey().indexOf("-")+1);
+			Double updatedValue = mapC.get(entry.getKey())/mapTotal.get(totalKey);
+			
+			/*if(entry.getKey().equalsIgnoreCase("autobus-bus")){
+				System.out.println("Found autobus-bus");
+				System.out.println(totalKey);
+				System.out.println(updatedValue);
+			}*/
+			
+			mapT.put(entry.getKey(), updatedValue);
+		}
+		System.out.println("Finished iteration:"+mapT);
 		model1EM(--steps);
 	}
 	
