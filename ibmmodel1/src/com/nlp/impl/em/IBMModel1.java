@@ -18,9 +18,9 @@ public class IBMModel1 {
 	
 	public static void main(String[] args) {
 		
-		if(args.length<2){
+		if(args.length<3){
 			System.out.println("Please provide input arguments... ");
-			
+			System.out.println("java IBMModel1  Corpus1 Corpus2 DevWords  -Xmx2048m");
 			System.exit(0);
 		}
 		
@@ -33,6 +33,24 @@ public class IBMModel1 {
 		ibmModel1.model1EM(10); // 10 steps
 		System.out.println("Finished EM :");
 //		System.out.println(ibmModel1.mapT);
+		//read third  argument and output results
+		ibmModel1.lookup(args);
+	}
+
+	private  void lookup(String string[]) {
+		
+		List<String> words = readFile(string[2]);
+		for (int i = 0; i < words.size(); i++) {
+			System.out.println("Looking up :"+words.get(i)); 
+			// TODO Auto-generated method stub
+			Set<String> keys = englishKeys.get(words.get(i));
+			Iterator<String> iterator = keys.iterator();
+			while(iterator.hasNext()){
+				String key  = iterator.next();
+				System.out.print("\t"+key+"   ");
+				System.out.println(mapT.get(key)); 
+			}
+		}
 	}
 
 	private void init(String[] args) {
@@ -84,6 +102,7 @@ public class IBMModel1 {
 			}
 			br.close();
 		}catch(Exception e){
+			e.printStackTrace();
 			System.out.println("Please check file name arguments (Location of file should be correct)");
 		}
 		return lines;
@@ -205,7 +224,7 @@ public class IBMModel1 {
 
 
 
- 
+	public  static Map<String, Set<String>> englishKeys = new HashMap<String, Set<String>>(); // will store keys as englishWord and value as X^englishWord pair ( which is key of mapT)
 
 	/*
 	 * Map<String> shows t(e|t) eg he|तो -->(is stored into string as) he-तो
@@ -223,9 +242,11 @@ public class IBMModel1 {
 		for (int i = 0; i < words1.length; i++) {
 			for (int j = 0; j < words2.length; j++) {
 				String key = words1[i] + "^" + words2[j];  //using ^ as seperation character
-				if (!mapT.containsKey(key))
+				if (!mapT.containsKey(key)){
 					mapT.put(key,1/getGlobalGermanCount()); //total german words german words
-				
+					//following method will be helpful during looking up 
+					insertForSecondLevelHashMap(words2[j],key);  // (englishWord,  X^english key pair as value ) 
+				}
 				
 				//put all english words to mapTotal
 				for (int k = 0; k < words2.length; k++) {
@@ -242,6 +263,18 @@ public class IBMModel1 {
 	 * conditional T(f|e) probabilities sum to 1.
 	 */
 	
+	private void insertForSecondLevelHashMap(String englishword, String key) {
+		// TODO Auto-generated method stub
+		if(englishKeys.containsKey(englishword)){
+			//don't need to allocate memory, insert key
+			englishKeys.get(englishword).add(key); //since it's hashset no need to worry about duplication
+		}else{
+			Set<String> keys = new HashSet<String>();
+			keys.add(key);
+			englishKeys.put(englishword, keys);
+		}
+	}
+
 	Map<String,Double> mapTotal = new HashMap<String, Double>(); // total(e) score  - set to 9 at each EM iteration 
 	
 	/*private Double getInitialAtomic(String germanWord, String englishWord) {
