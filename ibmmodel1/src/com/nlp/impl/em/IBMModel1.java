@@ -3,6 +3,7 @@ package com.nlp.impl.em;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,30 +23,43 @@ public class IBMModel1 {
 		
 		
 		IBMModel1 ibmModel1 = new IBMModel1();
-		List<String> sentences = readFile(args[0]); //english corpo
-		ibmModel1.setEnglishSentences(sentences);
-		sentences = readFile(args[1]); //english corpo
-		ibmModel1.setGermanSentences(sentences);
-		//call for all sentences
-		for (int i = 0; i < sentences.size(); i++) {
-			//initialize 
-			ibmModel1.initializeAndCompute(ibmModel1.germanSentences.get(i), ibmModel1.englishSentences.get(i));
-		}
+		ibmModel1.init(args);
 		ibmModel1.model1EM(10); // 10 steps
 		
 		System.out.println(ibmModel1.mapT);
-		/*Iterator<Entry<String, Double>> iterator = ibmModel1.mapT.entrySet().iterator();
-		while(iterator.hasNext()){
-			Entry<String, Double> entry = iterator.next();
-			System.out.println(entry.getKey());
-			System.out.println(entry.getValue());
-		}*/
+	}
+
+	private void init(String[] args) {
+		// TODO Auto-generated method stub
+		List<String> sentences = readFile(args[0]); //english corpo
+		setEnglishSentences(sentences);
+		sentences = readFile(args[1]); //german corpo
+		setGermanSentences(sentences);
+		//compute distinct german words for uniform probability 
+		IBMModel1.setGlobalGermanCount(computeGermanCount(germanSentences));
 		
+		//call for all sentences
+		for (int i = 0; i < sentences.size(); i++) {
+			//initialize 
+			initializeAndCompute(germanSentences.get(i),englishSentences.get(i));
+		}
+	}
+
+	private static Double computeGermanCount(List<String> germanSentences2) {
+		// TODO Auto-generated method stub
+		Set<String> setOfString = new HashSet<String>();
+		for (int i = 0; i < germanSentences2.size(); i++) {
+			String[] words = germanSentences2.get(i).split(" ");
+			setOfString.addAll(Arrays.asList(words));
+		}
+		System.out.println("Distinct german count is "+setOfString.size());
+		return (double) setOfString.size();
 	}
 
 	private List<String> germanSentences;
 	private List<String> englishSentences;
 	private Map<String,Double> mapT = new HashMap<String, Double>(); // t(f|e) - score
+	private static Double globalGermanCount;
 	
 	
 	public static List<String> readFile(String fileName){
@@ -155,6 +169,10 @@ public class IBMModel1 {
 	public void initializeAndCompute(String german,
 			String english) {
 
+		
+		if(getGlobalGermanCount()==null)
+			System.out.println("Please compute distinct german words for uniform probability");
+		
 		String[] words1 = german.split(" ");
 		String[] words2 = english.split(" ");
 
@@ -162,7 +180,13 @@ public class IBMModel1 {
 			for (int j = 0; j < words2.length; j++) {
 				String key = words1[i] + "-" + words2[j];
 				if (!mapT.containsKey(key))
-					mapT.put(key, getInitialAtomic(words1[i], words2[j]));
+					mapT.put(key,1/getGlobalGermanCount()); //total german words german words
+				
+				
+				//put all english words to mapTotal
+				for (int k = 0; k < words2.length; k++) {
+					mapTotal.put(words2[i],0.0); 
+				}
 			}
 		}
 	}
@@ -176,7 +200,7 @@ public class IBMModel1 {
 	
 	Map<String,Double> mapTotal = new HashMap<String, Double>(); // total(e) score  - set to 9 at each EM iteration 
 	
-	private Double getInitialAtomic(String germanWord, String englishWord) {
+	/*private Double getInitialAtomic(String germanWord, String englishWord) {
 		
 		mapTotal.put(englishWord, 0.0); //this will be used later
 		
@@ -217,7 +241,7 @@ public class IBMModel1 {
 	    
 	    
 		return count;
-	}
+	}*/
 
 	private Integer getIndex(String string, String englishWord) {
 		// TODO Auto-generated method stub
@@ -245,6 +269,16 @@ public class IBMModel1 {
 
 	public void setEnglishSentences(List<String> englishSentences) {
 		this.englishSentences = englishSentences;
+	}
+
+
+	public static Double getGlobalGermanCount() {
+		return globalGermanCount;
+	}
+
+
+	public static void setGlobalGermanCount(Double globalGermanCount) {
+		IBMModel1.globalGermanCount = globalGermanCount;
 	}
 
 }
