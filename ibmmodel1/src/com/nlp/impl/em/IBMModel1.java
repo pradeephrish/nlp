@@ -24,13 +24,15 @@ public class IBMModel1 {
 			System.exit(0);
 		}
 		
-		rowToConsider = 200;
+		rowToConsider = -1;  // -1 for all
+//		rowToConsider = 2000;
 		
 		IBMModel1 ibmModel1 = new IBMModel1();
 		ibmModel1.init(args);
+		System.out.println("Running EM .. (Note: Decremental Count)");
 		ibmModel1.model1EM(10); // 10 steps
-		
-		System.out.println(ibmModel1.mapT);
+		System.out.println("Finished EM :");
+//		System.out.println(ibmModel1.mapT);
 	}
 
 	private void init(String[] args) {
@@ -56,7 +58,7 @@ public class IBMModel1 {
 			String[] words = germanSentences2.get(i).split(" ");
 			setOfString.addAll(Arrays.asList(words));
 		}
-		System.out.println("Distinct german count is "+setOfString.size());
+		//System.out.println("Distinct german count is "+setOfString.size());
 		return (double) setOfString.size();
 	}
 
@@ -92,8 +94,8 @@ public class IBMModel1 {
 		if(steps==0)
 			return;
 		
-		System.out.println("Step : "+steps);
-		System.out.println(mapT);
+		System.out.println("Running EM Step . . . . . . .  : "+steps);
+		//System.out.println(mapT);
 		
 		
 		Map<String,Double> mapC; // count(f|e) score - set to 0 at each EM iteration 
@@ -106,40 +108,43 @@ public class IBMModel1 {
 			double[] total_s = new double[germanWords.length];
 			for (int j = 0; j < germanWords.length; j++) {
 					for (int k = 0; k < englishWords.length; k++) {
-						total_s[j]+=mapT.get(germanWords[j]+"-"+englishWords[k]);
+						total_s[j]+=mapT.get(germanWords[j]+"^"+englishWords[k]);
 					}
 			}
-			System.out.println("Total value map before");
-			System.out.println(mapTotal);
-			System.out.println("Map count before");
-			System.out.println(mapC);
-			System.out.println("Printing total_s");
-			for (int j2 = 0; j2 < total_s.length; j2++) {
+			//System.out.println("Total value map before");
+			//System.out.println(mapTotal);
+			//System.out.println("Map count before");
+			//System.out.println(mapC);
+			//System.out.println("Printing total_s");
+			/*for (int j2 = 0; j2 < total_s.length; j2++) {
 				System.out.print(total_s[j2]+" ");
 			}
-			System.out.println();
+			System.out.println();*/
 			for (int j = 0; j < germanWords.length; j++) {
 				for (int k = 0; k < englishWords.length; k++) {
-					Double value = mapC.get(germanWords[j]+"-"+englishWords[k]);
-					value+=mapT.get(germanWords[j]+"-"+englishWords[k]) / total_s[j];
-					System.out.println(mapT.get(germanWords[j]+"-"+englishWords[k]));
-					System.out.println(total_s[j]);
-					System.out.println("--> Value is "+value + " "+mapT.get(germanWords[j]+"-"+englishWords[k]) / total_s[j]);
-					mapC.put(germanWords[j]+"-"+englishWords[k], value); //update value
+					Double value = mapC.get(germanWords[j]+"^"+englishWords[k]);
+					value+=mapT.get(germanWords[j]+"^"+englishWords[k]) / total_s[j];
+					//System.out.println(mapT.get(germanWords[j]+"^"+englishWords[k]));
+					//System.out.println(total_s[j]);
+					//System.out.println("--> Value is "+value + " "+mapT.get(germanWords[j]+"^"+englishWords[k]) / total_s[j]);
+					mapC.put(germanWords[j]+"^"+englishWords[k], value); //update value
 					Double tValue = mapTotal.get(englishWords[k]);
-					tValue+=mapT.get(germanWords[j]+"-"+englishWords[k]) / total_s[j];
+					tValue+=mapT.get(germanWords[j]+"^"+englishWords[k]) / total_s[j];
 					mapTotal.put(englishWords[k], tValue); //update totalValue
 				}
 			}
 		}
-		System.out.println("Total value map after");
-		System.out.println(mapTotal);
-		System.out.println("Map count after");
-		System.out.println(mapC);
+		//System.out.println("Total value map after");
+		//System.out.println(mapTotal);
+		//System.out.println("Map count after");
+		//System.out.println(mapC);
 		Iterator<Entry<String, Double>> iterator = mapT.entrySet().iterator();
 		while(iterator.hasNext()){
 			Entry<String, Double> entry = iterator.next();
-			String totalKey  = entry.getKey().substring(entry.getKey().indexOf("-")+1);
+			String totalKey  = entry.getKey().substring(entry.getKey().indexOf("^")+1);
+			/*System.out.println(entry.getKey());
+			System.out.println(totalKey);
+			System.out.println(mapTotal.get(totalKey));*/
 			Double updatedValue = mapC.get(entry.getKey())/mapTotal.get(totalKey);
 			
 			/*if(entry.getKey().equalsIgnoreCase("autobus-bus")){
@@ -150,7 +155,7 @@ public class IBMModel1 {
 			
 			mapT.put(entry.getKey(), updatedValue);
 		}
-		System.out.println("Finished iteration:"+mapT);
+//		System.out.println("Finished iteration:"+mapT);
 		model1EM(--steps);
 	}
 	
@@ -173,7 +178,7 @@ public class IBMModel1 {
 
 
 
-
+	private Map<String,Double> clonnedEmptyMap = null; //to save processing
 
 	private Map<String, Double> setCountstoZero() {
 		// TODO Auto-generated method stub
@@ -182,11 +187,19 @@ public class IBMModel1 {
 			return null;
 		}	
 		HashMap<String,Double> mapC = new HashMap<String,Double>();
+		if(!(clonnedEmptyMap == null))
+		{
+			mapC = new HashMap<String,Double>(clonnedEmptyMap); // clonning hashmap
+			return mapC;   //this will save lot of iterations
+		}
 		Iterator<Entry<String, Double>> iterator = mapT.entrySet().iterator();
 		while(iterator.hasNext()){
 			Entry<String, Double> entry = iterator.next();
 			mapC.put(entry.getKey(), 0.0); //setting to zero
 		}
+		if(clonnedEmptyMap==null)
+			clonnedEmptyMap=new HashMap<String,Double>(mapC); //first time clone empty(zero value) mapC
+		
 		return mapC;
 	}
 
@@ -209,7 +222,7 @@ public class IBMModel1 {
 
 		for (int i = 0; i < words1.length; i++) {
 			for (int j = 0; j < words2.length; j++) {
-				String key = words1[i] + "-" + words2[j];
+				String key = words1[i] + "^" + words2[j];  //using ^ as seperation character
 				if (!mapT.containsKey(key))
 					mapT.put(key,1/getGlobalGermanCount()); //total german words german words
 				
