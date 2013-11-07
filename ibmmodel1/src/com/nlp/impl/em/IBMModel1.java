@@ -13,6 +13,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class IBMModel1 {
+	
+	public static int rowToConsider = -1;
+	
 	public static void main(String[] args) {
 		
 		if(args.length<2){
@@ -21,6 +24,7 @@ public class IBMModel1 {
 			System.exit(0);
 		}
 		
+		rowToConsider = 200;
 		
 		IBMModel1 ibmModel1 = new IBMModel1();
 		ibmModel1.init(args);
@@ -64,11 +68,17 @@ public class IBMModel1 {
 	
 	public static List<String> readFile(String fileName){
 		List<String> lines = new ArrayList<String>();
+			
 		try{
 			BufferedReader br = new BufferedReader(new FileReader(fileName));
 			String line;
+			int count =0;
 			while ((line = br.readLine()) != null) {
 			   lines.add(line);
+			   ++count;
+			   if(rowToConsider!=-1 && count==rowToConsider)  //consider rows till count
+				   break;
+			   
 			}
 			br.close();
 		}catch(Exception e){
@@ -206,7 +216,7 @@ public class IBMModel1 {
 				
 				//put all english words to mapTotal
 				for (int k = 0; k < words2.length; k++) {
-					mapTotal.put(words2[i],0.0); 
+					mapTotal.put(words2[k],0.0); 
 				}
 			}
 		}
