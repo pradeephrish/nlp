@@ -2,6 +2,8 @@ package com.nlp.impl.em;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,8 +14,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class IBMModel1 {
+public class IBMModel1 implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	public static int rowToConsider = -1;
 	
 	public static void main(String[] args) {
@@ -34,22 +40,40 @@ public class IBMModel1 {
 		System.out.println("Finished EM :");
 //		System.out.println(ibmModel1.mapT);
 		//read third  argument and output results
-		ibmModel1.lookup(args);
+		
+		try {
+			SerializeData.serialize("data/test.obj", ibmModel1);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//lookup(args,ibmModel1);
+		
+		/*ibmModel1.lookupAtomic("the");
+		ibmModel1.lookupAtomic("dog");
+		ibmModel1.lookupAtomic("cat");
+		ibmModel1.lookupAtomic("bus");*/
 	}
 
-	private  void lookup(String string[]) {
+	private static void lookup(String string[],IBMModel1 ibmModel1) {
 		
 		List<String> words = readFile(string[2]);
 		for (int i = 0; i < words.size(); i++) {
-			System.out.println("Looking up :"+words.get(i)); 
-			// TODO Auto-generated method stub
-			Set<String> keys = englishKeys.get(words.get(i));
-			Iterator<String> iterator = keys.iterator();
-			while(iterator.hasNext()){
-				String key  = iterator.next();
-				System.out.print("\t"+key+"   ");
-				System.out.println(mapT.get(key)); 
-			}
+			lookupAtomic(words.get(i),ibmModel1);
+		}
+	}
+
+	private static void lookupAtomic(String string, IBMModel1 ibmModel1) {
+		// TODO Auto-generated method stub
+		System.out.println("Looking up :"+string); 
+		// TODO Auto-generated method stub
+		Set<String> keys = englishKeys.get(string);
+		Iterator<String> iterator = keys.iterator();
+		while(iterator.hasNext()){
+			String key  = iterator.next();
+			System.out.print("\t"+key+"   ");
+			System.out.println(ibmModel1.mapT.get(key)); 
 		}
 	}
 
