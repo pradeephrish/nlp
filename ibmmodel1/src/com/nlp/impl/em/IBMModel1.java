@@ -2,24 +2,21 @@ package com.nlp.impl.em;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.PriorityQueue;
 import java.util.Set;
 
 public class IBMModel1 implements Serializable {
 	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 	public static int rowToConsider = -1;
 	
 	public static void main(String[] args) {
@@ -40,29 +37,38 @@ public class IBMModel1 implements Serializable {
 		System.out.println("Finished EM :");
 //		System.out.println(ibmModel1.mapT);
 		//read third  argument and output results
+				
+		lookup(args,ibmModel1);
+		/*
+		ibmModel1.lookupAtomic("the",ibmModel1);
+		ibmModel1.lookupAtomic("dog",ibmModel1);
+		ibmModel1.lookupAtomic("cat",ibmModel1);
+		ibmModel1.lookupAtomic("bus",ibmModel1);*/
 		
-		try {
-			SerializeData.serialize("data/test.obj", ibmModel1);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		//lookup(args,ibmModel1);
-		
-		/*ibmModel1.lookupAtomic("the");
-		ibmModel1.lookupAtomic("dog");
-		ibmModel1.lookupAtomic("cat");
-		ibmModel1.lookupAtomic("bus");*/
+		System.out.println("************OVER************");
 	}
 
 	private static void lookup(String string[],IBMModel1 ibmModel1) {
 		
 		List<String> words = readFile(string[2]);
 		for (int i = 0; i < words.size(); i++) {
+			try{
 			lookupAtomic(words.get(i),ibmModel1);
+			}catch(Exception e){
+				System.out.println("word not found in trained model "+words.get(i));
+			}
 		}
 	}
+	
+	public class tModel{
+		String key;
+		Double value;
+		tModel(String key,Double value){
+			this.key=key;
+			this.value=value;
+		}
+	}
+	
 
 	private static void lookupAtomic(String string, IBMModel1 ibmModel1) {
 		// TODO Auto-generated method stub
@@ -70,10 +76,33 @@ public class IBMModel1 implements Serializable {
 		// TODO Auto-generated method stub
 		Set<String> keys = englishKeys.get(string);
 		Iterator<String> iterator = keys.iterator();
+		
+		PriorityQueue<tModel> priorityModel = new PriorityQueue<tModel>(keys.size(),new Comparator<tModel>() {
+
+			@Override
+			public int compare(tModel o1, tModel o2) {
+				// TODO Auto-generated method stub
+				if(o1.value < o2.value){
+					return 1;
+				}else if(o1.value > o2.value){
+					return -1;
+				}
+				else	
+				 return 0;
+			}
+		});
+				
+		
 		while(iterator.hasNext()){
 			String key  = iterator.next();
-			System.out.print("\t"+key+"   ");
-			System.out.println(ibmModel1.mapT.get(key)); 
+			priorityModel.add(ibmModel1.new tModel(key, ibmModel1.mapT.get(key)));
+//			System.out.print("\t"+key+"   ");
+//			System.out.println(ibmModel1.mapT.get(key)); 
+		}		
+		while(!priorityModel.isEmpty()){
+			tModel model = priorityModel.poll();
+			System.out.print("\t"+model.key.substring(0, model.key.indexOf("^"))+"\t\t");
+			System.out.println(ibmModel1.mapT.get(model.key));
 		}
 	}
 
@@ -256,6 +285,9 @@ public class IBMModel1 implements Serializable {
 	public void initializeAndCompute(String german,
 			String english) {
 
+		
+		//add NULL to english word
+		english += "NULL "+english;
 		
 		if(getGlobalGermanCount()==null)
 			System.out.println("Please compute distinct german words for uniform probability");
